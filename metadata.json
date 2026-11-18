@@ -1,0 +1,6 @@
+{
+  "name": "PPSSPP Web",
+  "description": "PPSSPP PSP emulator compiled to WebAssembly for the browser, featuring console dashboard UI, OPFS saves, demo library, RetroAchievements, and browser multiplayer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

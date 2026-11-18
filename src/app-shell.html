@@ -1,0 +1,554 @@
+
+  <header>
+    <span class="logo">
+      <img class="brand-logo" src="images/ppsspp-icon.png" alt="" width="32" height="32">
+      <span class="brand-name">PPSSPP <small>WEB</small></span>
+    </span>
+
+    <div class="hbar-end">
+      <button id="demoActivityBtn" type="button" class="demo-activity" aria-controls="demoTransfer" hidden><i data-lucide="download"></i><span id="demoActivityText">İndirmeler</span></button>
+      <span id="gamepadBadge" class="badge" title="Oyun Kumandası"><i data-lucide="gamepad-2"></i> Kumanda yok</span>
+      <span id="gpuBadge"     class="badge" title="GPU"><i data-lucide="monitor"></i> Algılanıyor&hellip;</span>
+      <span id="driveBadge"   class="badge drive-badge" title="Google Drive — Drive sekmesine gitmek için tıklayın" role="button" tabindex="0" style="display:none">
+        <i data-lucide="cloud"></i> <span id="driveBadgeText">Drive</span>
+      </span>
+      <a class="top-official-link" href="https://www.ppsspp.org/" target="_blank" rel="noopener" title="Resmi PPSSPP web sitesi">
+        <span>PPSSPP.org</span><i data-lucide="external-link"></i>
+      </a>
+      <button id="fullscreenBtn" type="button" class="fullscreen-button" aria-label="Tam ekrana geç" title="Tam ekran" aria-pressed="false"><i data-lucide="maximize"></i><span>Tam ekran</span></button>
+      <button id="panelToggleBtn" class="panel-btn" title="Oyun menüsü" aria-label="Oyun menüsü" aria-controls="sidePanel" aria-expanded="false"><i data-lucide="gamepad-2"></i><span class="btn-lbl">Oyun menüsü</span></button>
+    </div>
+  </header>
+
+  <div class="body-main">
+    <button id="fsMenuBackdrop" class="fullscreen-menu-backdrop" type="button" aria-label="Oyun menüsünü kapat" tabindex="-1" hidden></button>
+    <div class="fullscreen-toolbar">
+      <button id="fsMenuToggle" type="button" aria-label="Oyun menüsü" aria-controls="fsMenuActions" aria-expanded="false" title="Oyun menüsü"><span aria-hidden="true">···</span></button>
+      <button id="fsExitBtn" type="button" aria-label="Tam ekrandan çık" title="Tam ekrandan çık"><i data-lucide="minimize"></i></button>
+      <div id="fsMenuActions" class="fullscreen-actions" role="group" aria-label="Oyun kontrolleri" hidden>
+        <button id="fsPanelBtn" type="button" aria-controls="sidePanel" aria-expanded="false"><i data-lucide="gamepad-2"></i> Kontrol Paneli</button>
+      </div>
+    </div>
+    <section class="stage">
+      <canvas id="canvas" width="1280" height="720" tabindex="0"></canvas>
+      <div id="loadOverlay" role="status">
+        <div id="launchArtwork" class="launch-artwork" hidden><img id="launchArtworkImage" alt=""></div>
+        <div id="launchTitle" class="launch-title">PPSSPP</div>
+        <div class="spinner"></div>
+        <div class="load-label" id="loadLabel">Başlatılıyor&hellip;</div>
+        <div class="progress-wrap"><div id="progressBar"></div></div>
+      </div>
+      <div id="runtimeRecovery" class="runtime-recovery" role="alert" hidden>
+        <strong>Emülatör durdu</strong>
+        <p id="runtimeFailureMessage"></p>
+        <p>Sorunu teşhis etmek için bir rapor dışa aktarın. Bir grafik ayarını değiştirmek soruna yol açtıysa, yeniden yüklemeden önce emülatör ayarlarını sıfırlayın. Oyunlarınız ve kayıtlarınız korunur.</p>
+        <div class="recovery-actions">
+          <button id="recoveryReportBtn" type="button">Raporu dışa aktar</button>
+          <button id="recoverySettingsBtn" type="button">Ayarları sıfırla</button>
+          <button id="recoveryReloadBtn" type="button" class="primary">Yeniden yükle</button>
+        </div>
+      </div>
+      <div id="fpsBadge" title="Tarayıcı yenileme hızı; öykünülen oyunun kare hızı değildir">0 Hz · tarayıcı</div>
+      <div id="stageMini">
+        <span class="stage-dot" id="stageDot"></span>
+        <span id="stageMiniText">Hazır</span>
+      </div>
+    </section>
+
+    <!-- Shared player -->
+    <section id="sharedPlayer" class="shared-player" aria-label="Uzak oyun oturumu" hidden>
+      <div class="shared-player-toolbar">
+        <button id="sharedBack" type="button" aria-label="Paylaşılan Oturumlara dön">‹ <span>Oturumlar</span></button>
+        <div class="shared-player-title"><strong id="sharedPlayerTitle">Paylaşılan oturum</strong><span id="sharedControlStatus" role="status">İzleniyor · oyunu kurucu kontrol ediyor</span></div>
+        <div class="shared-player-actions"><button id="sharedPlay" type="button" aria-label="Sesi aç">Ses kapalı</button><button id="sharedTouchToggle" type="button" aria-pressed="false">Dokunmatik kontroller</button><button id="sharedFullscreen" type="button" aria-label="Tam ekrana geç">Tam ekran</button><button id="sharedLeave" type="button">Ayrıl</button></div>
+      </div>
+      <div class="shared-video-frame" id="sharedVideoSurface">
+        <video id="sharedVideo" autoplay muted playsinline tabindex="0" aria-label="Uzak oyun; klavye, kumanda ve dokunmatik giriş"></video>
+        <button id="sharedHud" class="shared-hud-toggle" type="button" aria-label="Oynatıcı kontrollerini göster" aria-expanded="false" hidden>···</button>
+        <p id="sharedPlayerStatus" class="shared-player-status" role="status">Yayına bağlanılıyor…</p>
+        <div id="sharedTouchControls" class="shared-touch-controls" aria-label="PSP dokunmatik kontroller" hidden>
+          <div class="shared-touch-shoulders"><button data-shared-key="KeyQ" aria-label="L tetiği">L</button><button data-shared-key="KeyW" aria-label="R tetiği">R</button></div>
+          <div class="shared-touch-left"><div class="shared-dpad"><button class="pad-up" data-shared-key="ArrowUp" aria-label="Yukarı">▲</button><button class="pad-left" data-shared-key="ArrowLeft" aria-label="Sol">◀</button><button class="pad-right" data-shared-key="ArrowRight" aria-label="Sağ">▶</button><button class="pad-down" data-shared-key="ArrowDown" aria-label="Aşağı">▼</button></div><div id="sharedAnalog" class="shared-analog" role="group" aria-label="Analog çubuk"><span></span></div></div>
+          <div class="shared-face-buttons"><button class="face-top" data-shared-key="KeyS" aria-label="Üçgen">△</button><button class="face-left" data-shared-key="KeyA" aria-label="Kare">□</button><button class="face-right" data-shared-key="KeyX" aria-label="Daire">○</button><button class="face-bottom" data-shared-key="KeyZ" aria-label="Çarpı">×</button></div>
+          <div class="shared-touch-system"><button data-shared-key="Enter">SELECT</button><button data-shared-key="Space">START</button></div>
+        </div>
+      </div>
+      <div class="shared-player-footer"><span id="sharedPlayerHint">Canlı yayın · indirme gerekmez</span><button id="sharedPlayerDetails" type="button" aria-expanded="false">Bağlantı bilgisi</button><p id="sharedPlayerDiagnostic" hidden></p></div>
+    </section>
+    <!-- End shared player -->
+
+    <section id="sidePanel" class="console-dashboard" aria-label="Konsol paneli">
+      <div class="console-atmosphere" aria-hidden="true">
+        <div class="atmosphere-light"></div>
+        <svg class="psp-wave wave-back" viewBox="0 0 1600 900" preserveAspectRatio="none"><defs><linearGradient id="waveBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bc6ec" stop-opacity=".26"/><stop offset="1" stop-color="#365b99" stop-opacity="0"/></linearGradient></defs><path d="M-200 490 C180 140 430 800 850 420 S1430 230 1800 520 L1800 1100 L-200 1100Z" fill="url(#waveBack)"/><path d="M-200 490 C180 140 430 800 850 420 S1430 230 1800 520" fill="none" stroke="#a4d7f2" stroke-opacity=".22" stroke-width="1.5"/></svg>
+        <svg class="psp-wave wave-front" viewBox="0 0 1600 900" preserveAspectRatio="none"><defs><linearGradient id="waveFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#badbea" stop-opacity=".2"/><stop offset=".7" stop-color="#395c98" stop-opacity="0"/></linearGradient></defs><path d="M-200 570 C180 850 440 190 900 480 S1400 800 1800 380 L1800 1100 L-200 1100Z" fill="url(#waveFront)"/><path d="M-200 570 C180 850 440 190 900 480 S1400 800 1800 380" fill="none" stroke="#d2ecff" stroke-opacity=".18" stroke-width="1"/></svg>
+        <svg class="psp-wave wave-thread" viewBox="0 0 1600 900" preserveAspectRatio="none"><path d="M-200 650 C200 340 520 750 1000 450 S1510 500 1800 600 M-200 675 C200 365 520 775 1000 475 S1510 525 1800 625" fill="none" stroke="#bad9f4" stroke-opacity=".12" stroke-width="1"/></svg>
+      </div>
+      <div class="status-bar"><span class="status-dot" id="statusDot"></span><span id="statusText" role="status">Hazır</span><button id="dashboardFullscreenBtn" type="button" class="fullscreen-button" aria-label="Tam ekrandan çık"><i data-lucide="minimize"></i><span>Tam ekrandan çık</span></button></div>
+
+      <nav class="tabs" aria-label="Panel bölümleri">
+        <button type="button" class="tab active" data-tab="library" aria-current="page"><i data-lucide="gamepad-2"></i> Kütüphane</button>
+        <button type="button" class="tab"        data-tab="saves"><i data-lucide="save"></i> Kayıtlar</button>
+        <button type="button" class="tab"        data-tab="network"><i data-lucide="radio-tower"></i> Ağ</button>
+        <button type="button" class="tab"        data-tab="shared"><i data-lucide="monitor"></i> Paylaşılan Oturumlar</button>
+        <button type="button" class="tab" data-tab="server"><i data-lucide="server"></i> Sunucu</button>
+        <button type="button" class="tab" data-tab="drive"><i data-lucide="cloud"></i> Drive</button>
+        <button type="button" class="tab"        data-tab="storage"><i data-lucide="hard-drive"></i> Depolama</button>
+        <button type="button" class="tab" data-tab="achievements"><i data-lucide="award"></i> Başarımlar</button>
+        <button type="button" class="tab"        data-tab="info"><i data-lucide="settings"></i> Sistem</button>
+        <button type="button" class="tab"        data-tab="log"><i data-lucide="terminal"></i> Günlükler</button>
+        <button type="button" class="tab"        data-tab="about"><i data-lucide="info"></i> Hakkında</button>
+      </nav>
+
+      <section id="sessionDock" class="session-dock" aria-label="Geçerli oturum" hidden>
+        <div class="session-banner">
+          <span class="session-icon" aria-hidden="true"><canvas id="sessionPreview" width="320" height="180" hidden></canvas><img id="sessionArtwork" alt="" hidden><span id="sessionPreviewFallback"><i data-lucide="gamepad-2"></i></span></span>
+          <div class="session-copy"><strong id="sessionTitle">PPSSPP</strong><span id="sessionState" class="session-state">Çalışıyor</span></div>
+          <button id="resumeSessionBtn" type="button" aria-labelledby="sessionActionLabel sessionTitle" aria-describedby="sessionState sessionDetail"><i data-lucide="play"></i><span id="sessionActionLabel">Oturuma dön</span></button>
+          <span id="sessionDetail" class="sr-only">Oturumunuza geri dönün.</span>
+        </div>
+      </section>
+
+      <div class="tab-panel active" id="tabLibrary">
+        <div id="libraryPanel" class="collection-panel">
+          <section id="isolationRecovery" class="isolation-recovery" role="alert" aria-labelledby="isolationRecoveryTitle" hidden>
+            <h2 id="isolationRecoveryTitle">Emülatör tarayıcı yalıtımı gerektiriyor</h2>
+            <p id="isolationRecoveryMessage"></p>
+            <div class="action-row"><button id="isolationRepairBtn" type="button" class="primary">Web çalışma zamanını onar</button><a id="isolationOpenTab" class="btn" target="_blank" rel="noopener noreferrer">Ayrı sekmede aç</a></div>
+            <p class="field-help">Onarım web çalışma zamanını yeniler. Yüklü oyunlarınız ve kayıtlı verileriniz korunur.</p>
+          </section>
+          <div class="collection-heading">
+            <div><h1>Oyunlar</h1><p id="libraryCount">0 oyun</p></div>
+            <label class="btn primary" id="libraryImportLabel"><i data-lucide="folder-plus"></i> Oyun ekle<input id="libraryImportFile" type="file" accept=".iso,.cso,.chd,.pbp,.elf,.prx,.zip"></label>
+          </div>
+          <div class="collection-toolbar">
+            <label class="search-field"><i data-lucide="search"></i><span class="sr-only">Oyunlarda ara</span><input id="librarySearch" type="search" placeholder="Oyunlarda ara" autocomplete="off"></label>
+            <label class="sort-field"><span class="sr-only">Oyunları sırala</span><select id="librarySort"><option value="title">Başlık A–Z</option><option value="title-desc">Başlık Z–A</option><option value="size">Dosya boyutu</option></select></label>
+            <details class="collection-tools"><summary>Kütüphane seçenekleri</summary><div class="tools-content">
+              <div class="action-row"><button id="startBtn" type="button"><i data-lucide="play"></i> Emülatörü başlat</button><button id="refreshLibraryBtn" type="button"><i data-lucide="refresh-cw"></i> Kütüphaneyi yenile</button></div>
+              <form id="libraryUrlForm"><label for="libraryUrlInput">URL'den oyun indir</label><div class="field-action"><input id="libraryUrlInput" type="url" placeholder="https://example.org/oyun.iso" required autocomplete="off" spellcheck="false"><button id="libraryDownloadUrlBtn" type="submit">İndir</button></div></form>
+              <p id="libraryPreloadCount" class="field-help">0 ön yükleme</p>
+            </div></details>
+          </div>
+          <div id="libraryEmpty" class="collection-empty" role="status">Oyun yok. Bir PSP oyunu veya ZIP ekleyin ya da aşağıdaki demolara göz atın.</div>
+          <nav id="libraryPagination" class="collection-pagination demo-pagination" aria-label="Oyun kütüphanesi sayfaları" hidden><button id="libraryPrevBtn" type="button" aria-label="Önceki oyun sayfası" aria-controls="libraryGrid"><kbd>L3</kbd> Önceki</button><span id="libraryPageLabel" role="status" aria-live="polite"></span><button id="libraryNextBtn" type="button" aria-label="Sonraki oyun sayfası" aria-controls="libraryGrid">Sonraki <kbd>R3</kbd></button></nav>
+          <div id="libraryGrid" class="collection-grid" aria-label="Oyunlar" style="display:none"></div>
+          <div id="librarySelection" class="collection-selection" aria-live="polite"></div>
+          <section id="demoSection" class="demo-section" aria-labelledby="demoHeading">
+            <div class="demo-heading">
+              <div class="demo-heading-copy"><h2 id="demoHeading">PSP demoları</h2></div>
+              <button id="demoLoadBtn" type="button" class="demo-refresh" aria-label="Demo kataloğuna göz at" title="Demo kataloğuna göz at"><i data-lucide="refresh-cw"></i><span>Demolara göz at</span></button>
+            </div>
+            <details id="demoTransfer" class="demo-transfer" hidden>
+              <summary id="demoTransferSummary" aria-controls="demoTransferDetails"><span id="demoTransferIcon" class="demo-transfer-icon" aria-hidden="true"></span><span class="demo-transfer-copy"><strong id="demoTransferTitle"></strong><span id="demoTransferPhase">İndiriliyor</span></span><span id="demoTransferPercent" class="demo-percent"></span><button id="demoDismissBtn" type="button" class="icon-btn" aria-label="İndirmeyi kapat" hidden><i data-lucide="x"></i></button><progress id="demoProgress" max="100" aria-label="Geçerli kurulum aşaması ilerlemesi"></progress></summary>
+              <div id="demoTransferDetails" class="demo-transfer-details"><p id="demoTransferDetail"></p><div class="demo-transfer-actions"><button id="demoBrowseBtn" type="button">Ayrıntıları kapat</button><button id="demoCancelBtn" type="button">İptal</button><button id="demoRetryBtn" type="button" hidden>Tekrar dene</button><button id="demoOpenBtn" type="button" hidden><i data-lucide="play"></i> Demoyu aç</button><a id="demoTransferZip" class="btn" target="_blank" rel="noopener noreferrer" hidden>ZIP İndir</a></div></div>
+            </details>
+            <div class="demo-browser-toolbar">
+              <div class="demo-views" role="group" aria-label="Demo koleksiyonu"><button id="demoAllBtn" type="button" aria-pressed="true">Tüm demolar <span id="demoTotalCount">—</span></button><button id="demoInstalledBtn" type="button" aria-pressed="false">Yüklü <span id="demoInstalledCount">0</span></button></div>
+              <label class="search-field"><i data-lucide="search"></i><span class="sr-only">Demolarda ara</span><input id="demoSearch" type="search" placeholder="Demolarda ara" autocomplete="off"></label>
+              <label class="demo-select"><span>Bölge</span><select id="demoRegion"><option value="">Tüm bölgeler</option><option value="EU">Avrupa</option><option value="US">ABD</option><option value="JP">Japonya</option><option value="KR">Kore</option></select></label>
+              <label class="demo-select"><span>Sırala</span><select id="demoSort"><option value="title">Başlık A–Z</option><option value="title-desc">Başlık Z–A</option><option value="size">Önce en küçük</option></select></label>
+            </div>
+            <div class="demo-results-heading"><p id="demoStatus" role="status" aria-live="polite">PlayDreamCreate kataloğuna göz atın.</p><button id="demoResetBtn" type="button" class="demo-text-button" hidden>Filtreleri temizle</button></div>
+            <div id="demoEmpty" class="demo-empty"><i data-lucide="gamepad-2"></i><h3 id="demoEmptyTitle">PSP demo arşivi</h3><p id="demoEmptyDetail">Kataloğu yüklemek için Demolara göz at'ı seçin.</p></div>
+            <nav id="demoPagination" class="collection-pagination demo-pagination" aria-label="Demo kataloğu sayfaları" hidden><button id="demoPrevBtn" type="button" aria-controls="demoGrid"><kbd>L3</kbd> Önceki</button><span id="demoPageLabel" role="status" aria-live="polite"></span><button id="demoNextBtn" type="button" aria-controls="demoGrid">Sonraki <kbd>R3</kbd></button></nav>
+            <div id="demoGrid" class="demo-grid" aria-label="PSP demoları"></div>
+            <p class="demo-source">Katalog sağlayıcısı: <a href="https://playdreamcreate.com/" target="_blank" rel="noopener noreferrer">PlayDreamCreate <i data-lucide="external-link"></i></a><span>Bir ZIP indirin, ardından kütüphanenize aktarın.</span></p>
+            <p id="demoFallback" class="field-help" hidden>Sunucu gerekmez: ZIP İndir'i seçin, ardından ZIP İçe Aktar ile indirilen dosyayı seçin. Demo kütüphanenize kaydedilecektir.</p>
+          </section>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabSaves">
+        <div id="savesPanel" class="collection-panel">
+          <div class="collection-heading"><div><h1>Kayıtlar</h1><p id="savesStats"></p></div>
+            <label class="btn primary" id="importSaveSlotLabel"><i data-lucide="upload"></i> Kayıt içe aktar<input id="importSaveSlotFile" type="file" accept=".ppsspp,.json"></label>
+          </div>
+          <div class="collection-toolbar">
+            <label class="search-field"><i data-lucide="search"></i><span class="sr-only">Kayıtlarda ara</span><input id="savesSearch" type="search" placeholder="Oyun veya kayıt yuvası ara" autocomplete="off"></label>
+            <details class="collection-tools"><summary>Kayıt seçenekleri</summary><div class="tools-content action-stack">
+              <button id="refreshSavesBtn" type="button"><i data-lucide="refresh-cw"></i> Kayıtları yenile</button>
+              <button id="exportAllSavesBtn" type="button"><i data-lucide="download"></i> Yedek dışa aktar</button>
+              <label class="btn">PSP klasörü içe aktar<input id="nativeSaveFolderInput" type="file" webkitdirectory multiple aria-label="Yerel PSP kayıt klasörü içe aktar"></label>
+              <button id="deleteAllSavesBtn" type="button" class="danger">Tüm kayıtları sil</button>
+            </div></details>
+          </div>
+          <div id="savesEmpty" class="collection-empty" role="status">Kayıt yok.</div>
+          <div id="savesList" class="collection-grid" aria-label="Kayıtlı oyunlar" style="display:none"></div>
+          <div id="savesSelection" class="collection-selection" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabNetwork">
+        <div id="networkPanel" class="settings-panel">
+          <div class="section-heading"><h1>Çok Oyunculu</h1></div>
+          <section class="network-status" id="networkStatus" data-tone="neutral" role="status" aria-live="polite" aria-atomic="true">
+            <div class="network-status-heading"><span class="network-led" aria-hidden="true"></span><strong id="networkStatusTitle">Bağlı değil</strong></div>
+            <p id="networkStatusDetail">Çok oyunculu modu etkinleştirin, ardından aktarıcı bağlantınızı kontrol edin.</p>
+            <div class="network-session" id="networkSessionState">Etkin oyun oturumu yok</div>
+          </section>
+          <form id="networkSettingsForm" class="network-config">
+            <label class="network-toggle">
+              <input type="checkbox" id="networkEnableToggle">
+              <span>Çok oyunculuyu etkinleştir</span>
+            </label>
+            <label class="network-field">Aktarıcı adresi (Relay)
+              <input id="networkServerInput" type="url" spellcheck="false" autocomplete="off" placeholder="wss://relay.example.org/adhoc">
+            </label>
+            <label class="network-field">Oda
+              <input id="networkRoomInput" type="text" maxlength="32" placeholder="public">
+              <small>Arkadaşlarınızla aynı odayı ve aynı oyun sürümünü kullanın.</small>
+            </label>
+            <label class="network-field"><span>Oturum anahtarı <small class="network-optional">(isteğe bağlı)</small></span>
+              <input id="networkSessionKeyInput" type="password" maxlength="256" autocomplete="off" placeholder="Yalnızca korumalı aktarıcıda gereklidir">
+            </label>
+            <div class="network-actions">
+              <button id="networkSaveBtn" type="submit" class="primary"><i data-lucide="save"></i> Ayarları kaydet</button>
+              <button id="networkTestBtn" type="button"><i data-lucide="activity"></i> Bağlantıyı kontrol et</button>
+            </div>
+            <div id="networkActivity" class="network-activity" role="status">PPSSPP'yi başlatmadan önce kaydedin, ardından oyunun çok oyunculu menüsünden oda kurun veya katılın.</div>
+            <details class="network-advanced">
+              <summary>Oyuncu kimliği ve bağlantı kontrolleri</summary>
+              <label class="network-field">Bağlantı modu
+                <select id="networkTransportInput">
+                  <option value="hybrid">Otomatik · uygun olduğunda doğrudan bağlantı</option>
+                  <option value="websocket">Yalnızca aktarıcı (Relay)</option>
+                </select>
+              </label>
+              <label class="network-field">Takma ad
+                <input id="networkNickInput" type="text" maxlength="16" spellcheck="false" autocomplete="off" placeholder="Takma ad">
+              </label>
+              <label class="network-field">MAC adresi
+                <input id="networkMacInput" type="text" spellcheck="false" autocomplete="off" placeholder="Otomatik atanır">
+                <small>Her oyuncunun farklı bir adrese ihtiyacı vardır. Genellikle değiştirilmesi gerekmez.</small>
+              </label>
+              <div class="network-actions">
+                <button type="button" id="networkDisconnectBtn" disabled>Bağlantıyı kes</button>
+                <button type="button" id="networkReconnectBtn" disabled>Oyunu yeniden bağla</button>
+              </div>
+            </details>
+          </form>
+          <details id="networkInvitePanel">
+            <summary>Arkadaşlarla oyna · QR ve davet</summary>
+            <p>Aktarıcıyı, odayı ve isteğe bağlı oturum anahtarını paylaşın. Arkadaşlarınız kendi takma adlarını ve MAC adreslerini korur. Aynı oyun sürümünü kullanın, ardından oyun içinden oda kurun veya katılın.</p>
+            <label><input id="networkInviteIncludeKey" type="checkbox"> Oturum anahtarımı dahil et (benim adıma erişim verir)</label>
+            <button id="networkInviteCreateBtn">Davet QR'ı oluştur</button>
+            <canvas id="networkInviteQr" hidden aria-label="Çok oyunculu davet QR kodu"></canvas>
+            <textarea id="networkInviteLink" rows="3" readonly hidden aria-label="Davet bağlantısı"></textarea>
+            <button id="networkInviteCopyBtn" hidden>Daveti kopyala</button>
+            <p>Ayrı erişim ve yetki iptali için her arkadaşınızın aktarıcı yöneticisinden kendi anahtarını alması gerekir.</p>
+            <form id="networkInviteImportForm"><label for="networkInviteImportInput">Davet bağlantısı</label><div class="field-action"><input id="networkInviteImportInput" type="url" required autocomplete="off" placeholder="Davet bağlantısını yapıştırın" aria-label="İçe aktarılacak davet">
+            <button id="networkInviteImportBtn" type="submit">İçe aktar</button></div></form>
+            <label>QR görseli tara <input id="networkInviteImageInput" type="file" accept="image/*" capture="environment"></label>
+            <button id="networkInviteScanBtn">Kamera ile tara</button>
+            <button id="networkInviteStopBtn" hidden>Kamerayı durdur</button>
+            <video id="networkInviteVideo" hidden muted playsinline aria-label="QR tarayıcı önizlemesi"></video>
+            <p id="networkInviteStatus" role="status"></p>
+          </details>
+          <details class="network-diagnostics"><summary>Teknik tanılama</summary><pre id="networkDiagnostics" aria-live="polite">Henüz oyun bağlantısı başlatılmadı.</pre></details>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabShared">
+        <div class="shared-panel">
+          <div class="collection-heading"><div><span class="shared-eyebrow">BİRLİKTE OYNA</span><h1>Paylaşılan Oturumlar</h1><p>Tek oyun. Arkadaşlarınız nerede olursa olsun birlikte oynayın.</p></div><div class="shared-actions"><button id="sharedConnect" class="primary" type="button">Aktarıcıya bağlan</button><button id="sharedDisconnect" type="button" disabled>Bağlantıyı kes</button></div></div>
+          <div class="shared-connection"><span class="shared-live-dot"></span><p id="sharedStatus" role="status" aria-live="polite">Ağ odanızdaki oturumları keşfetmek için bağlanın.</p><button id="sharedResume" type="button" hidden>Yayına dön</button></div>
+          <section class="shared-discovery" aria-labelledby="sharedDiscoveryTitle"><div class="shared-section-heading"><h2 id="sharedDiscoveryTitle">Odanızdaki canlı yayınlar</h2><span>İzleyin veya kontrolü devralın</span></div><div id="sharedList" class="shared-session-list" aria-live="polite">Arkadaşlarınızın oturumları burada görünecektir.</div></section>
+          <details class="shared-host-card" open><summary><span><strong>Oyununu paylaş</strong><small>Bu cihazdan odanıza yayın yapın</small></span><span aria-hidden="true">＋</span></summary><div class="shared-host-body">
+            <div class="shared-host-fields"><label class="network-field"><span>Oturum başlığı</span><input id="sharedTitle" maxlength="100" placeholder="Geçerli oyun"></label><label class="network-field"><span>Kimler oynayabilir?</span><select id="sharedMode"><option value="watch">Yalnızca izle</option><option value="play">Uzaktan oyna · kontrolü ata</option></select></label></div>
+            <div class="shared-actions"><button id="sharedPublish" type="button" class="primary" disabled>Paylaşımı başlat</button><button id="sharedStop" type="button" disabled>Durdur / oturumdan ayrıl</button></div>
+            <p class="shared-help">Arkadaşlarınız izlerken yerel olarak oynamaya devam edin. Uzaktan oynama ile PSP'nizi kimin kontrol edeceğini siz seçersiniz.</p><div id="sharedMembers" aria-label="Oturum misafirleri"></div>
+          </div></details>
+          <details class="shared-technical"><summary>Bağlantı ayrıntıları</summary><p id="sharedMediaStatus" role="status"></p><p>Ağ sekmesinde kayıtlı aktarıcıyı ve odayı kullanır. Misafirlerin oyun indirmesine gerek yoktur. Kurucunun PSP'sine en fazla dört misafir katılabilir.</p></details>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabServer">
+        <div class="settings-panel account-panel">
+          <div class="section-heading">
+            <h1>Sunucu hesabı</h1>
+            <p class="account-intro">Kayıtlarınızı kurtarmak ve bu sunucunun paylaşılan kütüphanesinden oyun yüklemek için herhangi bir tarayıcıdan giriş yapın.</p>
+          </div>
+          <p id="accountIdentity">Misafir · yerel kayıtlar</p>
+          <form id="accountLoginForm" class="info-group account-login">
+            <div class="account-field">
+              <label for="accountName">Kullanıcı adı</label>
+              <input id="accountName" autocomplete="username" maxlength="64" required>
+            </div>
+            <div class="account-field">
+              <label for="accountPassword">Parola</label>
+              <input id="accountPassword" type="password" autocomplete="current-password" maxlength="1024" required>
+            </div>
+            <button type="submit" class="primary account-submit">Giriş yap</button>
+            <p class="field-help">Hesaplar sunucu yöneticiniz tarafından oluşturulur. Emülatörü başlatmadan önce giriş yapın. Misafir kayıtları ayrı tutulur.</p>
+          </form>
+          <p id="accountStatus" class="account-status" role="status" aria-live="polite">Hesaplar etkinleştirilmiş kendi barındırdığınız bir sunucu gerektirir.</p>
+          <div id="accountControls" hidden>
+            <div class="action-row">
+              <button id="accountSync" type="button">Kayıtları şimdi yedekle</button>
+              <button id="accountRestore" type="button">Sunucu kayıtlarını geri yükle</button>
+              <button id="accountLogout" type="button">Çıkış yap</button>
+            </div>
+            <p class="field-help">Kayıtlar hesabınıza aittir. Başka bir tarayıcı bunları güncellerse, her iki kopyayı da korumak için yedekleme durur. Geri yüklemeden önce Kayıtlar → Dışa Aktar'ı kullanın. Tarayıcıyı kapatmadan önce yedeklemeyi tamamlayın.</p>
+            <div class="section-heading"><h2>Sunucu oyunları</h2><button id="accountRefresh" type="button">Yenile</button></div>
+            <p>Oynamak için yerel bir kopya yükleyin. Orijinali bir sonraki tarayıcınız için sunucuda kalır.</p>
+            <div id="accountGames"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabDrive">
+        <div id="drivePanel" class="settings-panel">
+          <div class="section-heading"><h1>Google Drive</h1></div>
+          <div class="info-group">
+            <h2>Bağlantı</h2>
+            <label for="googleClientIdInput">Google OAuth istemci kimliği</label>
+            <form id="driveConfigForm" class="drive-config">
+              <input id="googleClientIdInput" type="password" spellcheck="false" autocomplete="off" placeholder="OAuth Web istemci kimliği">
+              <button type="button" id="toggleGoogleClientIdBtn" title="İstemci kimliğini göster"><i data-lucide="eye"></i></button>
+              <button type="submit" id="saveGoogleClientIdBtn" title="İstemci kimliğini kaydet"><i data-lucide="save"></i></button>
+            </form>
+            <div class="info-row"><span class="info-key">Kimlik</span> <span class="info-val" id="iDriveAuth">Bağlı değil</span></div>
+            <div class="info-row"><span class="info-key">Klasör</span> <span class="info-val" id="iDriveFolder">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Uzak</span> <span class="info-val" id="iDriveRemote">&#8212;</span></div>
+          </div>
+          <div class="drive-actions">
+            <button id="driveConnectBtn"><i data-lucide="link-2"></i> Google'a Bağlan</button>
+            <button id="driveDisconnectBtn"><i data-lucide="x"></i> Bağlantıyı kes</button>
+            <button id="driveRefreshBtn"><i data-lucide="refresh-cw"></i> Drive'ı Yenile</button>
+            <button id="driveUploadSavesBtn"><i data-lucide="upload"></i> Kayıtları Yükle</button>
+            <button id="driveRestoreSavesBtn"><i data-lucide="download"></i> Son Kayıtları Geri Yükle</button>
+            <button id="driveUploadGamesBtn"><i data-lucide="upload"></i> Oyun Kütüphanesini Yükle</button>
+            <button id="driveDownloadGamesBtn"><i data-lucide="download"></i> Uzak Oyunları İndir</button>
+          </div>
+          <div class="drive-autosync-row">
+            <label class="drive-autosync-label">
+              <input type="checkbox" id="driveAutoSyncToggle">
+              <span>Kayıtları Drive'a otomatik eşitle</span>
+            </label>
+            <select id="driveAutoSyncInterval" title="Eşitleme aralığı">
+              <option value="60">Her 1 dk</option>
+              <option value="300" selected>Her 5 dk</option>
+              <option value="600">Her 10 dk</option>
+              <option value="1800">Her 30 dk</option>
+              <option value="3600">Saatlik</option>
+            </select>
+            <span id="driveAutoSyncStatus" class="drive-autosync-status"></span>
+          </div>
+          <div class="drive-help">
+            Google Cloud'da bu sitenin adresi kayıtlı bir Web istemci kimliği kullanın.
+          </div>
+          <div id="driveActivity" class="drive-activity">Boşta</div>
+          <div id="driveRemoteList"><span class="drive-empty">Uzak kayıtları ve oyunları listelemek için Google Drive'a bağlanın.</span></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabStorage">
+        <div id="storagePanel" class="settings-panel">
+          <div class="section-heading"><h1>Depolama</h1></div>
+          <div class="info-group">
+            <h2>Yerel depolama</h2>
+            <div class="info-row"><span class="info-key">Kayıtlı Dosyalar</span>  <span class="info-val" id="iStorageFiles">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Toplam Boyut</span>   <span class="info-val" id="iStorageSize">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Son Eşitleme</span>    <span class="info-val" id="iLastSync">Hiçbir zaman</span></div>
+            <div class="info-row"><span class="info-key">Otomatik Eşitleme</span>    <span class="info-val good">Her 30 sn</span></div>
+            <div class="info-row"><span class="info-key">Kalıcı Yol</span> <span class="info-val path-val" id="iMemstickPath">&#8212;</span></div>
+          </div>
+          <section class="info-group">
+            <h2>Doku paketleri (Replacement textures)</h2>
+            <label class="form-field" for="textureGameID">Oyun Kimliği<input id="textureGameID" type="text" placeholder="ULUS10567" maxlength="9" autocapitalize="characters" spellcheck="false"></label>
+            <p class="field-help">Oyununuzun bölgesiyle eşleşen kimliği girin. Bir ZIP dosyası içe aktarın veya PSP/TEXTURES içindeki oyun kimliği klasörünü seçin. Doğrudan ZIP kökünde görseller ve textures.ini içeren paketler de desteklenir. Paket başına en fazla 20.000 dosya; toplam 512 MiB.</p>
+            <div class="action-row">
+              <label class="btn">Doku ZIP'i içe aktar<input id="textureZipInput" type="file" accept=".zip"></label>
+              <label class="btn">Doku klasörü içe aktar<input id="textureFolderInput" type="file" webkitdirectory multiple></label>
+            </div>
+            <p id="textureStatus" class="field-help" role="status" aria-live="polite">Dokular bu tarayıcı profilinde saklanır. Bir paketi içe aktardıktan veya kaldırdıktan sonra emülatörü yeniden başlatın.</p>
+            <div id="texturePackList"></div>
+          </section>
+          <div class="storage-actions">
+            <button id="syncNowBtn"><i data-lucide="save"></i> Şimdi eşitle</button>
+            <button id="clearStorageBtn" class="danger"><i data-lucide="trash-2"></i> Tüm Kayıtlı Verileri Temizle</button>
+          </div>
+        </div>
+        <div class="panel-section-label">Kalıcı Dosyalar</div>
+        <div id="opfsFileList"><span class="empty-row">Yükleniyor&hellip;</span></div>
+      </div>
+
+      <div class="tab-panel" id="tabAchievements">
+        <div class="settings-panel">
+          <div class="section-heading"><h1>RetroAchievements</h1></div>
+          <p class="about-text">RetroAchievements hesabınızla başarımlar kazanın. Oyun tanıma, ilerleme ve kilit açmalar PPSSPP tarafından yönetilir.</p>
+          <form id="achievementsSettings" class="info-group">
+            <label class="menu-motion-setting"><input id="achievementsEnabled" type="checkbox"> RetroAchievements'ı etkinleştir</label>
+            <label class="menu-motion-setting"><input id="achievementsHardcore" type="checkbox"> Zorlu (Hardcore) mod</label>
+            <label class="form-field" for="achievementsGateway">Ağ Geçidi URL'si (isteğe bağlı)<input id="achievementsGateway" type="url" placeholder="https://your-relay/api/retroachievements"></label>
+            <p class="field-help">Yerel sunucu kullanırken boş bırakın. Statik barındırma için güvenilir aktarıcı ağ geçidinizi girin. Giriş bilgileri bu sunucu üzerinden HTTPS ile iletilir.</p>
+            <button id="achievementsSave" type="submit">Ayarları kaydet</button>
+          </form>
+          <form id="achievementsLoginForm" class="info-group">
+            <div class="settings-fields">
+              <label class="form-field" for="achievementsUsername">Kullanıcı adı<input id="achievementsUsername" autocomplete="username" maxlength="256" required></label>
+              <label class="form-field" for="achievementsPassword">Parola<input id="achievementsPassword" type="password" autocomplete="current-password" maxlength="1024" required></label>
+            </div>
+            <div class="action-row"><button id="achievementsLogin" type="submit" disabled>Giriş yap</button><button id="achievementsLogout" type="button" disabled>Çıkış yap</button><a href="https://retroachievements.org/createaccount.php" target="_blank" rel="noopener noreferrer">Hesap oluştur</a></div>
+            <p id="achievementsStatus" class="field-help" role="status" aria-live="polite"></p>
+            <p class="field-help">Parolanız yalnızca giriş yapmak için kullanılır. PPSSPP bu tarayıcı profilinde bir oturum belirteci saklar.</p>
+            <p id="achievementsSessionHelp" class="field-help"></p>
+          </form>
+          <section class="info-group"><h2>Geçerli oyun</h2><p id="achievementsGame" role="status"></p><ul id="achievementsList" class="achievement-list"></ul></section>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabInfo">
+        <div id="infoPanel" class="settings-panel">
+          <div class="section-heading"><h1>Ayarlar</h1></div>
+          <section class="info-group"><h2>Ekran ve oyun kumandası</h2>
+            <div class="settings-fields">
+              <label class="form-field" for="gamepadSelect">Etkin kumanda<select id="gamepadSelect"><option value="-1">Tüm kumandalar</option></select></label>
+              <label class="form-field" for="gpuSelect">Grafik işlemcisi<select id="gpuSelect"><option value="high-performance">Harici GPU</option><option value="low-power">Dahili GPU</option><option value="default">Otomatik</option></select></label>
+            </div>
+            <div class="action-row"><button id="configureControllerBtn" type="button">Kumandayı yapılandır</button><button id="configurePageButtonsBtn" type="button">Sayfa tuşlarını yapılandır</button><button id="resetControllerBtn" type="button">Tuş atamalarını sıfırla</button></div>
+            <label class="menu-motion-setting"><input id="menuMotionToggle" type="checkbox" checked> Hareketli menü arka planı</label>
+            <p class="field-help">PS / Rehber tuşu: emülatör menüsü için basın; web menüsü için basılı tutun. L3 + R3 de web menüsünü açar.</p>
+            <p id="controllerMappingStatus" class="field-help" role="status">Standart tuş düzeni.</p>
+            <p id="controllerInputDiagnostic" class="field-help">Giriş testi · paging-v8 · Tarayıcı girişini denetlemek için bir kumanda tuşuna basın.</p>
+          </section>
+          <div class="info-group">
+            <h3>Sorun Giderme</h3>
+            <p class="about-text">Raporlar tarayıcı ayrıntılarını, grafik/ses ayarlarını ve son günlükleri içerir. Paylaşmadan önce indirip inceleyin; hiçbir şey otomatik olarak gönderilmez.</p>
+            <div class="diagnostic-actions">
+              <button id="diagnosticReportBtn" type="button">Tanılama raporunu dışa aktar</button>
+              <button id="resetEmulatorSettingsBtn" type="button">Emülatör ayarlarını sıfırla</button>
+            </div>
+            <p class="about-text">Başlatmadan önce veya bir çökmeden sonra ayarları sıfırlayın. Oyunlar, kayıtlı ilerleme ve kumanda atamaları korunur.</p>
+          </div>
+          <div class="info-group">
+            <h3>WebGL / GPU</h3>
+            <div class="info-row"><span class="info-key">İşleyici (Renderer)</span>   <span class="info-val" id="iRenderer">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Üretici (Vendor)</span>     <span class="info-val" id="iVendor">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Sürüm</span>    <span class="info-val" id="iVersion">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">GLSL</span>       <span class="info-val" id="iGlsl">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Maks. Doku</span><span class="info-val" id="iMaxTex">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Maks. Aniso</span>  <span class="info-val" id="iAniso">&#8212;</span></div>
+          </div>
+          <div class="info-group">
+            <h3>Eklentiler</h3>
+            <div class="info-row"><span class="info-key">WebGL2</span>             <span class="info-val" id="iWebgl2">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">stencil_texturing</span>  <span class="info-val" id="iStencil">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">multi_draw</span>         <span class="info-val" id="iMultiDraw">&#8212;</span></div>
+          </div>
+          <div class="info-group">
+            <h3>Ortam</h3>
+            <div class="info-row"><span class="info-key">crossOriginIsolated</span><span class="info-val" id="iCOI">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">SharedArrayBuffer</span>  <span class="info-val" id="iSAB">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Donanım Eşzamanlılığı</span>     <span class="info-val" id="iHWC">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">SIMD128</span>            <span class="info-val" id="iSIMD">&#8212;</span></div>
+          </div>
+          <div class="info-group">
+            <h3>Ses</h3>
+            <div class="info-row"><span class="info-key">AudioContext</span> <span class="info-val" id="iACtx">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">Örnekleme Hızı</span>  <span class="info-val" id="iASR">&#8212;</span></div>
+            <div class="info-row"><span class="info-key">SDL Geri Çağrıları</span><span class="info-val" id="iACB">0</span></div>
+            <div class="info-row"><span class="info-key">Tepe Seviyesi</span>   <span class="info-val" id="iAPeak">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabAbout">
+        <div id="aboutPanel" class="settings-panel">
+          <div class="about-hero">
+            <img class="about-mark" src="images/ppsspp-icon.png" alt="PPSSPP" width="40" height="40">
+            <div>
+              <div class="about-title">PPSSPP Web</div>
+              <div class="about-subtitle">Tarayıcıda oynamak için sürdürülen resmi olmayan WebAssembly çatalı.</div>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3>PPSSPP-WASM Çatalı</h3>
+            <div class="about-text">
+              Burada kullanılan emülatör çekirdeği, <a href="https://github.com/root-hunter" target="_blank" rel="noopener">root-hunter</a> tarafından sürdürülen WebAssembly odaklı
+              <a href="https://github.com/root-hunter/ppsspp-wasm" target="_blank" rel="noopener">ppsspp-wasm</a> çatalından gelmektedir.
+              Bu web kabuğunun çalıştırdığı PPSSPP tarayıcı derleme çalışmalarını içerir.
+            </div>
+            <div class="about-links">
+              <a href="https://github.com/root-hunter/ppsspp-wasm" target="_blank" rel="noopener">WASM çatal deposu</a>
+              <a href="https://github.com/root-hunter" target="_blank" rel="noopener">Geliştirici</a>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3>Web Kabuğu</h3>
+            <div class="about-text">
+              PPSSPP Web, bu WASM derlemesini bir tarayıcı arayüzü, GitHub Pages dağıtımı, PWA kabuğu, yerel tarayıcı depolama yardımcıları ve web oynatıcı iş akışıyla paketler.
+            </div>
+            <div class="about-links">
+              <a href="https://root-hunter.github.io/ppsspp-web/" target="_blank" rel="noopener">Canlı web sürümü</a>
+              <a href="https://www.ppsspp.org/legacybuilds/" target="_blank" rel="noopener">Resmi PPSSPP listesi</a>
+              <a href="https://github.com/root-hunter/ppsspp-web" target="_blank" rel="noopener">Web deposu</a>
+              <a href="https://github.com/root-hunter" target="_blank" rel="noopener">Geliştirici</a>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3>Orijinal PPSSPP</h3>
+            <div class="about-text">
+              PPSSPP, Henrik Rydgard ve birçok katkıda bulunan tarafından geliştirilen bir PSP emülatörüdür.
+              Bu çatal resmi bir PPSSPP sürümü değildir ve orijinal projenin haklarını ve lisans koşullarını korur.
+            </div>
+            <div class="about-links">
+              <a href="https://github.com/hrydgard/ppsspp" target="_blank" rel="noopener">Orijinal proje</a>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3>Katkılar / Yasal</h3>
+            <div class="about-text">
+              Oyunlar, BIOS dosyaları ve telif hakkıyla korunan PSP yazılımları dahil değildir. Kendi yasal olarak edindiğiniz dosyaları kullanın.
+              Tam atıf için depo lisansına ve orijinal PPSSPP katkı listesine bakın.
+            </div>
+            <div class="about-links">
+              <a href="LICENSE.TXT" target="_blank" rel="noopener">Lisans</a>
+              <a href="README.md" target="_blank" rel="noopener">README</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabLog">
+        <div id="logPanel"><pre id="log"></pre></div>
+        <div class="log-toolbar">
+          <input id="logFilter" aria-label="Günlükleri filtrele" placeholder="Filtrele&hellip;" type="search" autocomplete="off" spellcheck="false">
+          <button id="clearLogBtn" title="Temizle"><i data-lucide="trash-2"></i></button>
+        </div>
+      </div>
+      <footer class="console-hints"><span><kbd>↔ ↕</kbd> Gezin</span><span><kbd>A / ×</kbd> Seç</span><span><kbd>B / ○</kbd> Geri</span><span><kbd>LB / RB</kbd> Bölümler</span><span class="hint-pages" hidden><kbd>L3 / R3</kbd> <span id="controllerPageStatus">Sayfalar</span></span><span class="hint-scroll"><kbd>R çubuk</kbd> Kaydır</span><span class="hint-menu"><kbd>PS</kbd> Menü · web için basılı tut</span><span class="hint-fullscreen"><kbd>Y / △</kbd> Tam ekran</span><span id="consoleInputStatus" role="status">Klavye · Fare · Dokunmatik</span></footer>
+    </section>
+
+  <div id="toast" role="status"></div>
+  <div id="demoAnnouncement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="saveInfoModal" class="collection-modal" aria-hidden="true">
+    <div class="save-info-dialog" role="dialog" aria-modal="true" aria-labelledby="saveInfoTitle">
+      <div class="save-dialog-heading"><div id="saveInfoIcon"></div><div><h2 id="saveInfoTitle"></h2><p id="saveInfoSummary"></p></div><button id="saveInfoCloseBtn" type="button" aria-label="Kayıtları kapat"><i data-lucide="x"></i></button></div>
+      <div id="saveInfoSlots"></div>
+    </div>
+  </div>
+  <div id="gameInfoModal" aria-hidden="true">
+    <div class="game-info-dialog" role="dialog" aria-modal="true" aria-labelledby="gameInfoTitle">
+      <div class="game-info-cover" id="gameInfoCover"></div>
+      <div class="game-info-body">
+        <div class="game-info-title" id="gameInfoTitle"></div>
+        <div id="gameInfoRows"></div>
+      </div>
+      <div class="game-info-actions">
+        <button id="gameInfoPlayBtn" class="primary"><i data-lucide="play"></i> Oyna</button>
+        <details class="game-options"><summary>Oyun seçenekleri</summary><div class="action-stack">
+          <button id="gameInfoFavoriteBtn" type="button"><i data-lucide="hard-drive"></i> Başlangıçta ön yükle</button>
+          <button id="gameInfoUploadBtn" type="button" class="drive-sync-btn">Drive'a Yükle</button>
+          <button id="gameInfoDeleteBtn" type="button" class="danger">Oyunu sil</button>
+        </div></details>
+        <button id="gameInfoCloseBtn"><i data-lucide="x"></i> Kapat</button>
+      </div>
+    </div>
+  </div>
+  </div>
